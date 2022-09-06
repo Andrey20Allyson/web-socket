@@ -11,6 +11,10 @@
     <input type="button" value="send">
     <div id="msgBox">
     </div>
-    <script src="./index.js"></script>
+    <script>
+	fetch('./index.js')
+	.then(res => res.text())
+	.then(text => alert(text));
+    </script>
 </body>
 </html>
