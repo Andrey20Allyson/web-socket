@@ -109,27 +109,26 @@ export class HTTPServer extends EventEmitter implements IServer {
     }
 
     private defaultRequestListener(req: http.IncomingMessage, res: http.ServerResponse): void {
-        let { method } = req;
+        let { method, url } = req;
         if (!method) return;
 
         method = method.toLowerCase();
 
-        if (this.__acceptedMethods.includes(method)) {
+        if (this.__acceptedMethods.includes(method)) 
             this.emit(method, req, res);
-        }
-
+        
         if (req.method === 'GET') {
-            if (req.url === '/' || !req.url) {
+            if (req.url === '/' || !url) {
                 this.sendData('/index.html', res);
             } else {
-                this.sendData(req.url, res);
+                this.sendData(url, res);
             }
         }
     }
 };
 
 export abstract class ServerCreater {
-    public static createServer(requestListener?: http.RequestListener): IServer {
+    static createServer(requestListener?: http.RequestListener): IServer {
         const requestCacher = createRequestCacher();
         const server = new HTTPServer(requestListener, requestCacher);
 

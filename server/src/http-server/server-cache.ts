@@ -60,7 +60,7 @@ export class RequestCacher implements RequestCacherI {
 };
 
 export function createRequestCacher() {
-    const cacher = new RequestCacher()
+    const cacher = new RequestCacher();
 
     return cacher;
 }
