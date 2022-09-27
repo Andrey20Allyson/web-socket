@@ -1,0 +1,1 @@
+node server/dist/index.js client/public
