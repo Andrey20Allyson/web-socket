@@ -3,15 +3,7 @@ import fs from 'fs';
 export interface RequestCacherI {
     getDataFrom(path: string): Promise<string>;
     insert(data: string, path: string): void;
-    setMaxLen(newLen: number): void;
-};
-
-export class RequestCacher {
-    private caches: RequestCache[] = [];
-
-    constructor(e: string) {
-        
-    }
+    setMaxLen(newLength: number): void;
 };
 
 export class RequestCache {
@@ -24,44 +16,51 @@ export class RequestCache {
     }
 
     updateData(err: NodeJS.ErrnoException, data: string) {
+        
+    }
+};
 
+export class RequestCacher implements RequestCacherI {
+    private caches: RequestCache[];
+    private maxLength: number;
+
+    constructor() {
+        this.caches = [];
+        this.maxLength = 8;
+    }
+
+    getDataFrom(path: string): Promise<string> {
+        return new Promise((resolve, reject) => {
+            let data = this.caches.find(v => v.path === path)?.data;
+            if (data) resolve(data);
+
+            fs.readFile(path, { encoding: 'utf-8' }, (err, data) => {
+                if (err) reject(err);
+
+                this.insert(data, path);
+
+                resolve(data);
+            });
+        });
+    }
+
+    insert(data: string, path: string): void {
+        if (this.caches.length >= this.maxLength) this.caches.shift();
+        this.caches.push(new RequestCache(data, path));
+    }
+
+    setMaxLen(newLength: number): void {
+        if (newLength < 0) throw new Error('newLen must be positive!');
+
+        if (newLength < this.maxLength)
+            this.caches.splice(0, this.maxLength - newLength);
+
+        this.maxLength = newLength;
     }
 };
 
 export function createRequestCacher() {
-    const caches: RequestCache[] = [];
-    let maxLen = 8;
-
-    const cacher: RequestCacherI = {
-        getDataFrom(path) {
-            return new Promise((resolve, reject) => {
-                let data = caches.find(v => v.path === path)?.data;
-                if (data) resolve(data);
-
-                fs.readFile(path, {encoding: 'utf-8'}, (err, data) => {
-                    if (err) reject(err);
-
-                    this.insert(data, path);
-
-                    resolve(data);
-                });
-            });
-        },
-
-        insert(data, path) {
-            if (caches.length >= maxLen) caches.shift();
-            caches.push(new RequestCache(data, path));
-        },
-
-        setMaxLen(newLen) {
-            if (newLen < 0) throw new Error('newLen must be positive!');
-
-            if (newLen < maxLen) 
-                caches.splice(0, maxLen - newLen);
-
-            maxLen = newLen;
-        }
-    };
+    const cacher = new RequestCacher()
 
     return cacher;
 }
